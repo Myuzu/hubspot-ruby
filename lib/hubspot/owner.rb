@@ -8,11 +8,10 @@ module Hubspot
   # TODO: Update an Owner
   # TODO: Delete an Owner
   class Owner
-    GET_OWNERS_PATH   = '/owners/v2/owners' # GET
-    CREATE_OWNER_PATH = '/owners/v2/owners' # POST
+    GET_OWNERS_PATH   = '/owners/v2/owners'.freeze # GET
+    CREATE_OWNER_PATH = '/owners/v2/owners'.freeze # POST
     UPDATE_OWNER_PATH = '/owners/v2/owners/:owner_id' # PUT
     DELETE_OWNER_PATH = '/owners/v2/owners/:owner_id' # DELETE
-
 
     attr_reader :properties, :owner_id, :email
 
@@ -27,22 +26,22 @@ module Hubspot
     end
 
     class << self
-      def all(include_inactive=false)
+      def all(include_inactive = false, opts = {})
         path     = GET_OWNERS_PATH
         params   = { includeInactive: include_inactive }
-        response = Hubspot::Connection.get_json(path, params)
+        response = Hubspot::Connection.get_json(path, params, opts)
         response.map { |r| new(r) }
       end
 
-      def find_by_email(email, include_inactive=false)
+      def find_by_email(email, include_inactive = false, opts = {})
         path     = GET_OWNERS_PATH
         params   = { email: email, includeInactive: include_inactive }
-        response = Hubspot::Connection.get_json(path, params)
+        response = Hubspot::Connection.get_json(path, params, opts)
         response.blank? ? nil : new(response.first)
       end
 
-      def find_by_emails(emails, include_inactive=false)
-        emails.map { |email| find_by_email(email, include_inactive) }.reject(&:blank?)
+      def find_by_emails(emails, include_inactive = false, opts = {})
+        emails.map { |email| find_by_email(email, include_inactive, opts) }.reject(&:blank?)
       end
     end
   end

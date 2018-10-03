@@ -1,50 +1,49 @@
 module Hubspot
   class ContactProperties < Properties
-
-    ALL_PROPERTIES_PATH  = '/contacts/v2/properties'
-    ALL_GROUPS_PATH      = '/contacts/v2/groups'
-    CREATE_PROPERTY_PATH = '/contacts/v2/properties/'
+    ALL_PROPERTIES_PATH  = '/contacts/v2/properties'.freeze
+    ALL_GROUPS_PATH      = '/contacts/v2/groups'.freeze
+    CREATE_PROPERTY_PATH = '/contacts/v2/properties/'.freeze
     UPDATE_PROPERTY_PATH = '/contacts/v2/properties/named/:property_name'
     DELETE_PROPERTY_PATH = '/contacts/v2/properties/named/:property_name'
-    CREATE_GROUP_PATH    = '/contacts/v2/groups/'
+    CREATE_GROUP_PATH    = '/contacts/v2/groups/'.freeze
     UPDATE_GROUP_PATH    = '/contacts/v2/groups/named/:group_name'
     DELETE_GROUP_PATH    = '/contacts/v2/groups/named/:group_name'
 
     class << self
-      def add_default_parameters(opts={})
-        superclass.add_default_parameters(opts)
+      def add_default_parameters(params = {})
+        superclass.add_default_parameters(params)
       end
 
-      def all(opts={}, filter={})
-        superclass.all(ALL_PROPERTIES_PATH, opts, filter)
+      def all(params = {}, filter = {}, opts = {})
+        superclass.all(ALL_PROPERTIES_PATH, params, filter, opts)
       end
 
-      def groups(opts={}, filter={})
-        superclass.groups(ALL_GROUPS_PATH, opts, filter)
+      def groups(params = {}, filter = {}, opts = {})
+        superclass.groups(ALL_GROUPS_PATH, params, filter, opts)
       end
 
-      def create!(params={})
-        superclass.create!(CREATE_PROPERTY_PATH, params)
+      def create!(params = {}, opts = {})
+        superclass.create!(CREATE_PROPERTY_PATH, params, opts)
       end
 
-      def update!(property_name, params={})
-        superclass.update!(UPDATE_PROPERTY_PATH, property_name, params)
+      def update!(property_name, params = {}, opts = {})
+        superclass.update!(UPDATE_PROPERTY_PATH, property_name, params, opts)
       end
 
-      def delete!(property_name)
-        superclass.delete!(DELETE_PROPERTY_PATH, property_name)
+      def delete!(property_name, opts = {})
+        superclass.delete!(DELETE_PROPERTY_PATH, property_name, opts)
       end
 
-      def create_group!(params={})
-        superclass.create_group!(CREATE_GROUP_PATH, params)
+      def create_group!(params = {}, opts = {})
+        superclass.create_group!(CREATE_GROUP_PATH, params, opts)
       end
 
-      def update_group!(group_name, params={})
-        superclass.update_group!(UPDATE_GROUP_PATH, group_name, params)
+      def update_group!(group_name, params = {}, opts = {})
+        superclass.update_group!(UPDATE_GROUP_PATH, group_name, params, opts)
       end
 
-      def delete_group!(group_name)
-        superclass.delete_group!(DELETE_GROUP_PATH, group_name)
+      def delete_group!(group_name, opts = {})
+        superclass.delete_group!(DELETE_GROUP_PATH, group_name, opts)
       end
 
       def same?(src, dst)

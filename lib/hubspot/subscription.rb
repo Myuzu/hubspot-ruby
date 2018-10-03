@@ -19,8 +19,8 @@ module Hubspot
     end
 
     class << self
-      def status(email)
-        response = Hubspot::Connection.get_json(SUBSCRIPTION_PATH, {email_address: email})
+      def status(email, opts = {})
+        response = Hubspot::Connection.get_json(SUBSCRIPTION_PATH, { email_address: email }, opts)
         new(response)
       end
     end

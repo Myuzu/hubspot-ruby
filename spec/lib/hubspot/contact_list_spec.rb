@@ -184,7 +184,7 @@ describe Hubspot::ContactList do
     context 'static list' do
       it 'returns true if contacts have been added to the list' do
         contact = Hubspot::Contact.all(count: 1).first
-        mock(Hubspot::Connection).post_json("/contacts/v1/lists/:list_id/add", {:params=>{:list_id=>4}, :body=>{:vids=>[contact.vid]}}) { { 'updated' => [contact.vid] } }
+        mock(Hubspot::Connection).post_json("/contacts/v1/lists/:list_id/add", {:params=>{:list_id=>4}, :body=>{:vids=>[contact.vid]}}, {}) { { 'updated' => [contact.vid] } }
 
         expect(static_list.add(contact)).to be true
       end

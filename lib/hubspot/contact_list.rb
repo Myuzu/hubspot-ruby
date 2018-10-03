@@ -3,7 +3,7 @@ module Hubspot
   # HubSpot Contact lists API
   #
   class ContactList
-    LISTS_PATH           = '/contacts/v1/lists'
+    LISTS_PATH           = '/contacts/v1/lists'.freeze
     LIST_PATH            = '/contacts/v1/lists/:list_id'
     LIST_BATCH_PATH      = LISTS_PATH + '/batch'
     CONTACTS_PATH        = LIST_PATH + '/contacts/all'
@@ -14,38 +14,41 @@ module Hubspot
 
     class << self
       # {http://developers.hubspot.com/docs/methods/lists/create_list}
-      def create!(opts={})
-        dynamic = opts.delete(:dynamic) { false }
-        portal_id = opts.delete(:portal_id) { Hubspot::Config.portal_id }
+      def create!(params = {}, opts = {})
+        dynamic = params.delete(:dynamic) { false }
+        portal_id = params.delete(:portal_id) { Hubspot::Config.portal_id }
 
-        response = Hubspot::Connection.post_json(LISTS_PATH, params: {}, body: opts.merge({ dynamic: dynamic, portal_id: portal_id}) )
+        response = Hubspot::Connection.post_json(LISTS_PATH, {
+                                                   params: {},
+                                                   body: params.merge(dynamic: dynamic, portal_id: portal_id)
+                                                 }, opts)
         new(response)
       end
 
       # {http://developers.hubspot.com/docs/methods/lists/get_lists}
       # {http://developers.hubspot.com/docs/methods/lists/get_static_lists}
       # {http://developers.hubspot.com/docs/methods/lists/get_dynamic_lists}
-      def all(opts={})
-        static = opts.delete(:static) { false }
-        dynamic = opts.delete(:dynamic) { false }
+      def all(params = {}, opts = {})
+        static = params.delete(:static) { false }
+        dynamic = params.delete(:dynamic) { false }
 
         # NOTE: As opposed of what the documentation says, getting the static or dynamic lists returns all the lists, not only 20 lists
         path = LISTS_PATH + (static ? '/static' : dynamic ? '/dynamic' : '')
-        response = Hubspot::Connection.get_json(path, opts)
+        response = Hubspot::Connection.get_json(path, params, opts)
         response['lists'].map { |l| new(l) }
       end
 
       # {http://developers.hubspot.com/docs/methods/lists/get_list}
       # {http://developers.hubspot.com/docs/methods/lists/get_batch_lists}
-      def find(ids)
+      def find(ids, opts = {})
         batch_mode, path, params = case ids
-        when Integer then [false, LIST_PATH, { list_id: ids }]
-        when String then [false, LIST_PATH, { list_id: ids.to_i }]
-        when Array then [true, LIST_BATCH_PATH, { batch_list_id: ids.map(&:to_i) }]
-        else raise Hubspot::InvalidParams, 'expecting Integer or Array of Integers parameter'
+                                   when Integer then [false, LIST_PATH, { list_id: ids }]
+                                   when String then [false, LIST_PATH, { list_id: ids.to_i }]
+                                   when Array then [true, LIST_BATCH_PATH, { batch_list_id: ids.map(&:to_i) }]
+                                   else raise Hubspot::InvalidParams, 'expecting Integer or Array of Integers parameter'
         end
 
-        response = Hubspot::Connection.get_json(path, params)
+        response = Hubspot::Connection.get_json(path, params, opts)
         batch_mode ? response['lists'].map { |l| new(l) } : new(response)
       end
     end
@@ -57,34 +60,37 @@ module Hubspot
     attr_reader :properties
 
     def initialize(hash)
-      self.send(:assign_properties, hash)
+      send(:assign_properties, hash)
     end
 
     # {http://developers.hubspot.com/docs/methods/lists/update_list}
-    def update!(opts={})
-      response = Hubspot::Connection.post_json(LIST_PATH, params: { list_id: @id }, body: opts)
-      self.send(:assign_properties, response)
+    def update!(params = {}, opts = {})
+      response = Hubspot::Connection.post_json(LIST_PATH, {
+                                                 params: { list_id: @id },
+                                                 body: params
+                                               }, opts)
+      send(:assign_properties, response)
       self
     end
 
     # {http://developers.hubspot.com/docs/methods/lists/delete_list}
-    def destroy!
-      response = Hubspot::Connection.delete_json(LIST_PATH, { list_id: @id })
+    def destroy!(opts = {})
+      response = Hubspot::Connection.delete_json(LIST_PATH, { list_id: @id }, opts)
       @destroyed = (response.code == 204)
     end
 
     # {http://developers.hubspot.com/docs/methods/lists/get_list_contacts}
-    def contacts(opts={})
+    def contacts(params = {}, _opts = {})
       # NOTE: caching functionality can be dependant of the nature of the list, if dynamic or not ...
-      bypass_cache = opts.delete(:bypass_cache) { false }
-      recent = opts.delete(:recent) { false }
-      paged = opts.delete(:paged) { false }
+      bypass_cache = params.delete(:bypass_cache) { false }
+      recent = params.delete(:recent) { false }
+      paged = params.delete(:paged) { false }
 
       if bypass_cache || @contacts.nil?
         path = recent ? RECENT_CONTACTS_PATH : CONTACTS_PATH
-        opts[:list_id] = @id
+        params[:list_id] = @id
 
-        response = Hubspot::Connection.get_json(path, Hubspot::ContactProperties.add_default_parameters(opts))
+        response = Hubspot::Connection.get_json(path, Hubspot::ContactProperties.add_default_parameters(params))
         @contacts = response['contacts'].map! { |c| Hubspot::Contact.new(c) }
         paged ? response : @contacts
       else
@@ -93,22 +99,32 @@ module Hubspot
     end
 
     # {http://developers.hubspot.com/docs/methods/lists/refresh_list}
-    def refresh
-      response = Hubspot::Connection.post_json(REFRESH_PATH, params: { list_id: @id, no_parse: true }, body: {})
+    def refresh(opts = {})
+      response = Hubspot::Connection.post_json(REFRESH_PATH, {
+                                                 params: { list_id: @id, no_parse: true },
+                                                 body: {}
+                                               }, opts)
       response.code == 204
     end
 
     # {http://developers.hubspot.com/docs/methods/lists/add_contact_to_list}
-    def add(contacts)
+    def add(contacts, opts = {})
       contact_ids = [contacts].flatten.uniq.compact.map(&:vid)
-      response = Hubspot::Connection.post_json(ADD_CONTACT_PATH, params: { list_id: @id }, body: { vids: contact_ids })
+      response = Hubspot::Connection.post_json(ADD_CONTACT_PATH, {
+                                                 params: { list_id: @id },
+                                                 body: { vids: contact_ids }
+                                               }, opts)
+
       response['updated'].sort == contact_ids.sort
     end
 
     # {http://developers.hubspot.com/docs/methods/lists/remove_contact_from_list}
-    def remove(contacts)
+    def remove(contacts, opts = {})
       contact_ids = [contacts].flatten.uniq.compact.map(&:vid)
-      response = Hubspot::Connection.post_json(REMOVE_CONTACT_PATH, params: { list_id: @id }, body: { vids: contact_ids })
+      response = Hubspot::Connection.post_json(REMOVE_CONTACT_PATH, {
+                                                 params: { list_id: @id },
+                                                 body: { vids: contact_ids }
+                                               }, opts)
       response['updated'].sort == contact_ids.sort
     end
 

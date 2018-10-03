@@ -1,3 +1,5 @@
+$LOAD_PATH << File.expand_path('.', __dir__)
+
 require 'active_support'
 require 'active_support/core_ext'
 require 'httparty'

@@ -10,16 +10,16 @@ module Hubspot
       # Lists the topics
       # {https://developers.hubspot.com/docs/methods/blogv2/get_topics)
       # @return [Hubspot::Topic] array of topics
-      def list
-        response = Hubspot::Connection.get_json(TOPICS_PATH, {})
+      def list(opts = {})
+        response = Hubspot::Connection.get_json(TOPICS_PATH, {}, opts)
         response['objects'].map { |t| new(t) }
       end
 
       # Finds the details for a specific topic_id
       # {https://developers.hubspot.com/docs/methods/blogv2/get_topics_topic_id }
       # @return Hubspot::Topic
-      def find_by_topic_id(id)
-        response = Hubspot::Connection.get_json(TOPIC_PATH, { topic_id: id })
+      def find_by_topic_id(id, opts = {})
+        response = Hubspot::Connection.get_json(TOPIC_PATH, { topic_id: id }, opts)
         new(response)
       end
     end
